@@ -8,6 +8,8 @@ void setup()
   hardware_setup();
   Serial.begin(9600);
   highscoreMemoryInit();
+
+  
 }
 
 void loop()
@@ -23,7 +25,6 @@ void loop()
   }
   if (startUp == false)
   {
-    Serial.println(gameStarted);
     // analogWrite(pinBacklight, brightness);
     if (gameStarted == true)
     {

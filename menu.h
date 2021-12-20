@@ -61,58 +61,95 @@ void print_line(int line, String text)
 void displaySettings()
 {
   int joystick = readJoystick();
-  if (joystick != lastJoyRead)
+
+  if (joystick != lastJoyRead && !inSecondSubmenu)
   {
     lastJoyRead = joystick;
 
-    if (joystick == down)
+    if (joystick == up)
     {
       if (submenuScrollPosition > 0)
       {
         submenuScrollPosition--;
       }
-      else
-      {
-        submenuScrollPosition = 3;
-      }
     }
-    if (joystick == up)
+    if (joystick == down)
     {
-      if (submenuScrollPosition < 3)
+      if (submenuScrollPosition < 6)
       {
         submenuScrollPosition++;
       }
-      else
-      {
-        submenuScrollPosition = 0;
-      }
     }
-
-    String nume;
+    print_line(0, "Settings Menu");
+    switch (submenuScrollPosition)
+    {
+    case 0:
+      print_line(1, "Show name");
+      break;
+    case 1:
+      print_line(1, "New name");
+      break;
+    case 2:
+      print_line(1, "Set difficulty");
+      break;
+    case 3:
+    {
+      print_line(1, "Contrast");
+      break;
+    }
+    case 4:
+    {
+      print_line(1, "Screen Light");
+      break;
+    }
+    case 5:
+    {
+      print_line(1, "Matrix Light");
+      break;
+    }
+    case 6:
+      print_line(1, "Quit submenu");
+      break;
+    }
+    
     if (joystick == enter)
     {
-      switch (submenuScrollPosition)
-      {
+      lcd.clear();
+      inSecondSubmenu = !inSecondSubmenu;
+    }
+  }
+  if (inSecondSubmenu)
+  {
+
+    String nume;
+
+    switch (submenuScrollPosition)
+    {
       case 0:
+      { // show name
         print_line(0, "Your name");
         currentEepromOffset = 0; // ?
         int newOffset;
         newOffset = readStringFromEEPROM(currentEepromOffset, &nume);
         currentEepromOffset = newOffset;
-        Serial.println(nume);
         print_line(1, nume);
 
+        joystick = readJoystick();
+        Serial.println(joystick);
         if (joystick == enter)
         {
-          inSubmenu = !inSubmenu;
-          currentMenuItem = 0;
-          submenuScrollPosition = 0;
+          lastJoyRead = joystick;
+          inSecondSubmenu = !inSecondSubmenu; // !inSecondSubmenu;
+          lcd.clear();
         }
-
         break;
-      case 1:
+      }
+      case 1: // enter name
+      {
         print_line(0, "Enter your name");
         print_line(1, "In serial");
+
+        joystick = readJoystick();
         if (joystick == enter)
         {
           while (Serial.available() > 0)
@@ -132,48 +169,179 @@ void displaySettings()
               break;
             }
           }
-          inSubmenu = !inSubmenu;
-          currentMenuItem = 0;
-          submenuScrollPosition = 0;
+          inSecondSubmenu = !inSecondSubmenu;
+          lcd.clear();
+          submenuScrollPosition = 1;
         }
         break;
-      case 2:
+      }
+      case 2: // difficulty
+      {
+        print_line(1, "              ");
         print_line(0, "Level" + String(chosenLevel));
         joystick = readJoystick();
-        if (joystick == right)
+        if (joystick != lastJoyRead)
         {
-          if (chosenLevel > 1)
+          lastJoyRead = joystick;
+          if (joystick == left)
           {
-            chosenLevel--;
+            if (chosenLevel > 1)
+            {
+              chosenLevel--;
+            }
+          }
+          if (joystick == right)
+          {
+            if (chosenLevel < 7)
+            {
+              chosenLevel++;
+            }
+          }
+          if (joystick == enter)
+          {
+            inSecondSubmenu = !inSecondSubmenu;
+            submenuScrollPosition = 2;
+            lcd.clear();
           }
         }
-        if (joystick == left)
-        {
-          chosenLevel++;
-        }
         break;
-      case 3:
+      }
+      case 3: // contrast settings
+      {
+        int xValue = analogRead(xPin);
+        
+        
+        if (xValue > maxThreshold)
+        {
+          if (LCDContrast < 255)
+          {
+            
+          LCDContrast++;
+          delay(15);
+          }
+        }
+      
+        if (xValue < minThreshold)
+        {
+          if (LCDContrast > 0)
+          {
+            LCDContrast--;
+            delay(15);
+          }
+        }
+
+        analogWrite(contrastPin, LCDContrast);
+        lcd.setCursor(0, 0);
+        lcd.print("Contrast: ");
+        lcd.print(LCDContrast);
+        lcd.print("      ");
+
+        joystick = readJoystick();
+        if (joystick == enter)
+        {
+          inSecondSubmenu = !inSecondSubmenu;
+          submenuScrollPosition = 3;
+          lcd.clear();
+        }
+        
+        break;
+      }
+      case 4: // screen light
+      {
+        int xValue = analogRead(xPin);
+        
+        
+        if (xValue > maxThreshold)
+        {
+          if (screenLight < 1400)
+          {
+            
+          screenLight++;
+          delay(15);
+          }
+        }
+      
+        if (xValue < minThreshold)
+        {
+          if (screenLight > 700)
+          {
+            screenLight--;
+            delay(15);
+          }
+        }
+
+
+        // TO INSTALL hardware
+          /* analogWrite(screenLightPin, screenLight); */
+        lcd.setCursor(0, 0);
+        lcd.print("BRIGHTNESS: ");
+        lcd.print(screenLight);
+        lcd.print("      ");
+        lcd.setCursor(0,1);
+        lcd.print("Screen");
+
+        joystick = readJoystick();
+        if (joystick == enter)
+        {
+          inSecondSubmenu = !inSecondSubmenu;
+          submenuScrollPosition = 4;
+          lcd.clear();
+        }
+        
+        break;
+      }
+      case 5: // matrix light
+      {
+       
+        for(int i=0;i<matrixSize;i++) {
+          for(int j=0;j<matrixSize;j++) {
+            lc.setLed(0,i,j,true);
+          }
+        }
+
+        int xValue = analogRead(xPin); 
+        if (xValue > maxThreshold)
+        {
+          if (matrixLight < 15)
+          {
+          matrixLight++;
+          delay(100);
+          }
+        }
+      
+        if (xValue < minThreshold)
+        {
+          if (matrixLight > 0)
+          {
+            matrixLight--;
+            delay(100);
+          }
+        }
+        lc.setIntensity(0, matrixLight);
+
+        lcd.setCursor(0, 0);
+        lcd.print("BRIGHTNESS: ");
+        lcd.print(matrixLight);
+        lcd.print("      ");
+        lcd.setCursor(0,1);
+        lcd.print("Matrix");
+
+        joystick = readJoystick();
+        if (joystick == enter)
+        {
+          inSecondSubmenu = !inSecondSubmenu;
+          submenuScrollPosition = 5;
+          lcd.clear();
+          lc.clearDisplay(0);    // clear screen
+        }
+        
+        break;
+      }
+      case 6: // exit
+      {
         inSubmenu = false;
         currentMenuItem = 0;
-        submenuScrollPosition = 0 ;
-      }
-    }
-    else
-    {
-      print_line(0, "Settings Menu");
-      switch (submenuScrollPosition)
-      {
-      case 0:
-        print_line(1, "Show name");
-        break;
-      case 1:
-        print_line(1, "New name");
-        break;
-      case 2:
-        print_line(1, "Set difficulty");
-        break;
-      case 3:
-        print_line(1, "Quit submenu");
+        submenuScrollPosition = 0;
         break;
       }
     }
@@ -292,9 +460,31 @@ void displayAbout()
   }
 }
 
+void resetGame()
+{
+  numberOfLives = 3;
+  numberOfStars = 3;
+  lastLevelChange = 0;
+  scoreIncrement = 1;
+  carSpeed = 600;
+  botSpawnRate = 12.5 * carSpeed;
+  isGameOver = false;
+  didCheckLevel = false;
+  ClearLastPlayerPosition();
+  ClearLastBotPosition();
+  xCar = 8;
+  yCar = 2;
+  xPlayer = 2;
+  yPlayer = 5;
+  levelReset = millis();
+  score = 0;
+  currentLevel = chosenLevel;
+  lcd.clear();
+}
+
 void showMenu()
 {
-  
+
   if (!inSubmenu)
   {
     print_line(0, "Main Menu");
@@ -346,13 +536,13 @@ void showMenu()
       }
     }
   }
-  if (inSubmenu)
+  else if (inSubmenu)
   {
     switch (currentMenuItem)
     {
     case 0:
+      resetGame();
       gameStarted = true;
-      lastSpawnTime = millis();
       break;
     case 1:
       displayHighscore();
@@ -367,28 +557,30 @@ void showMenu()
   }
 }
 
-void lcdGame()                            
+void lcdGame()
 {
   lcd.createChar(0, heartShape);
   lcd.createChar(1, starShape);
-  if(lastNumberOfLives != numberOfLives)
+  if (lastNumberOfLives != numberOfLives)
     lcd.clear();
-  if(lastNumberOfStars != numberOfStars)
+  if (lastNumberOfStars != numberOfStars)
     lcd.clear();
-  for(int i=0; i < numberOfLives; i++){
+  for (int i = 0; i < numberOfLives; i++)
+  {
     lcd.home();
-    lcd.setCursor(i,0);
+    lcd.setCursor(i, 0);
     lcd.write(byte(0));
   }
-  for(int i=0; i < numberOfStars; i++){
+  for (int i = 0; i < numberOfStars; i++)
+  {
     lcd.home();
-    lcd.setCursor(i,1);
+    lcd.setCursor(i, 1);
     lcd.write(byte(1));
   }
-  lcd.setCursor(6,0);
+  lcd.setCursor(6, 0);
   lcd.print("Level:");
   lcd.print(currentLevel);
-  lcd.setCursor(6,1);
+  lcd.setCursor(6, 1);
   lcd.print("Score:");
   lcd.print(score);
 }
@@ -428,58 +620,41 @@ void EndMenu()
       lcd.clear();
     }
   }
-  
-  if (joystick == enter) 
-  {
-      if (endMenuOption == 1)
-      {
-        numberOfLives = 3;
-        numberOfStars = 3;
-        lastLevelChange = 0;
-        scoreIncrement = 1;
-        carSpeed = 600;
-        botSpawnRate = 12.5 * carSpeed;
-        isGameOver = false;
-        gameStarted = true;
-        didCheckLevel = false;
-        ClearLastPlayerPosition();
-        ClearLastBotPosition();
-        xCar = 8;
-        yCar = 2;
-        xPlayer = 2;
-        yPlayer = 5;
-        levelReset = millis();
-        score = 0;
-        currentLevel = chosenLevel;
-        lcd.clear();
-      }
-      if (endMenuOption == 0)
-      {
-        numberOfLives = 3;
-        numberOfStars = 3;
-        lastLevelChange = 0;
-        scoreIncrement = 1;
-        EEPROM.get(0, highScore);
-        didCheckLevel = false;
-        // inMainMenu = true;
-        inSubmenu = false;
 
-        carSpeed = 600;
-        botSpawnRate = 12.5 * carSpeed;
-        gameStarted = false;
-        isGameOver = false;
-        ClearLastPlayerPosition();
-        ClearLastBotPosition();
-        xCar = 8;
-        yCar = 2;
-        xPlayer = 2;
-        yPlayer = 5;
-        levelReset = millis();
-        score = 0;
-        currentLevel = 1;
-        lc.clearDisplay(0);
-        lcd.clear();
-      }
+  if (joystick == enter)
+  {
+    if (endMenuOption == 1) // retry
+    {
+      resetGame();
+      gameStarted = true;
+    }
+    if (endMenuOption == 0) // MENU
+    {
+      numberOfLives = 3;
+      numberOfStars = 3;
+      lastLevelChange = 0;
+      scoreIncrement = 1;
+      EEPROM.get(0, highScore);
+      didCheckLevel = false;
+      // inMainMenu = true;
+      inSubmenu = false;
+
+      carSpeed = 600;
+      botSpawnRate = 12.5 * carSpeed;
+      gameStarted = false;
+      isGameOver = false;
+      ClearLastPlayerPosition();
+      ClearLastBotPosition();
+      xCar = 8;
+      yCar = 2;
+      xPlayer = 2;
+      yPlayer = 5;
+      levelReset = millis();
+      score = 0;
+      currentLevel = 1;
+      lc.clearDisplay(0);
+      lcd.clear();
+    }
   }
 }
 

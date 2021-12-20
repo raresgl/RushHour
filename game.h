@@ -103,8 +103,14 @@ void endGame()
   lcd.clear();
 }
 
+
+
+unsigned int myTimerTEST;
+
+
 void CheckCollision()               
 {
+
   if(takenDmg == false)
     if(matrix[7-xPlayer][7-yPlayer] == 1 || matrix[7-(xPlayer+1)][7-yPlayer] == 1 || matrix[7-(xPlayer-1)][7-yPlayer] == 1 || matrix[7-(xPlayer-2)][7-yPlayer] == 1)
       if(numberOfLives > 1){

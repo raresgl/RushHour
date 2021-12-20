@@ -15,33 +15,41 @@ int swState = HIGH;
 int lastSwState = HIGH;
 bool selector = false;
 
-const int debounceTime = 125;
-unsigned long lastPress;
 
 //defining the lcd pins
-const int contrastPin = 3;
-const int lcdRs = 8;
-const int lcdE = 9;
-const int lcdD4 = 4;
-const int lcdD5 = 5;
+const int contrastPin = 3; 
+const int lcdRs = 8; 
+const int lcdE = 9; 
+const int lcdD4 = 4; 
+const int lcdD5 = 5; 
 const int lcdD6 = 6;
-const int lcdD7 = 7;
+const int lcdD7 = 7; 
+
+const int screenLightPin = 2; // TO DO
 
 //defining matrix pins
 const int dinPin = 12;
 const int clockPin = 11;
-const int loadPin = 10;
-const int matrixSize = 8;
+const int loadPin = 10; 
+const int matrixSize = 8; 
 
 //defining joystick pins
-const int xPin = A1;
-const int yPin = A0;
-const int swPin = 2;
+const int xPin = A1; 
+const int yPin = A0; 
+const int swPin = 2; 
+
+unsigned long lastPress = 0;
+const int debounceDelay = 250;
 
 //lcd values
-const int contrastValue = 100;
+int contrastValue = 100;
 const int lcdWidth = 16;
 const int lcdHeight = 2;
+int matrixLight = 2;
+int screenLight = 1000; 
+
+
+
 
 LedControl lc = LedControl(dinPin, clockPin, loadPin, 1);
 LiquidCrystal lcd = LiquidCrystal(lcdRs, lcdE, lcdD4, lcdD5, lcdD6, lcdD7);
@@ -54,11 +62,13 @@ void hardware_setup()
   pinMode(yPin, INPUT);
   pinMode(contrastPin, OUTPUT);
   analogWrite(contrastPin, contrastValue);
+  // TO INSTALL hardware
+    /*analogWrite(screenLightPin,screenLight)*/ 
   lcd.begin(lcdWidth, lcdHeight);
 
   // the zero refers to the MAX7219 number, it is zero for 1 chip
   lc.shutdown(0, false); // turn off power saving, enables display
-  lc.setIntensity(0, 2); // sets brightness (0~15 possible values)
+  lc.setIntensity(0, matrixLight); // sets brightness (0~15 possible values)
   lc.clearDisplay(0);    // clear screen
 
   // EEPROM.get(0, highScore);
@@ -83,10 +93,15 @@ int readJoystick()
   int SwitchValue = digitalRead(swPin);       // read the state of the switch
   SwitchValue = map(SwitchValue, 0, 1, 1, 0); // invert the input from the switch to be high when pressed
 
-  if (SwitchValue == 1)
+
+  if (SwitchValue == 1 && millis() - lastPress > debounceDelay)
   {
+    lastPress = millis();
     output = enter;
+    
   }
+
+
   else if (xValue >= maxThreshold)
   {
     output = right;

@@ -94,6 +94,7 @@ int infoMenuOption = 0;
 int secondaryMenu = 0;
 int brightness = 128;
 int endMenuOption = 0;
+int LCDContrast = 100;
 
 bool gameJustOpened = true;
 bool inMainMenu = true;
@@ -111,6 +112,8 @@ unsigned long printLineTimer = 0;
 const int printDebounceTime = 100;
 int sectionNum = 0; //what section will be inSubmenu(highscore, play, etc)
 bool inSubmenu = false;
+bool inSecondSubmenu = false;
+
 int currentMenuItem = 0;
 int lastJoyRead = 0;
 int submenuScrollPosition = 0;
