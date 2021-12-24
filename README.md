@@ -42,3 +42,10 @@ The Settings Menu, which lets you costumise your game & UI however you want and 
 * Button
 
 # Setup
+
+# Demo 
+
+# Master Comment about Core Architecture 
+
+The thought behind the code architecture was to have a division in modules. That's why "setup()" and loop() are short functions.
+
