@@ -47,5 +47,21 @@ The Settings Menu, which lets you costumise your game & UI however you want and 
 
 # Master Comment about Core Architecture 
 
-The thought behind the code architecture was to have a division in modules. That's why "setup()" and loop() are short functions.
+The thought behind the code architecture was to have a division in modules. That's why `setup()` and `loop()` are short functions. The project is divided mainly in 2 parts, `menu.h` and `variables.h` . 
+
+I am going through each file of the project:
+
+* hardware.h
+  In this file I included pin & pin related declarations. Also `readJoystick()` is used for interpreting read values of the joystick and in order to make the code more clear.
+ 
+* variables.h
+  It includes all the variables that are not pin related and the position clear functions , which turn off the matrix leds that correspund to the previous position of both the player & the bot car (for `clearLastBotPosition()` it also turns from 1 to 0 the values of the prev position in the matrix)
+ 
+* game.h
+  Includes game related functions. ` spawnBot()` and `carSpawner()` are bot related functions which randomise the spawn of the bot and lights up the led matrix & the collision matrix. `spawnPlayer()` lights up the matrix leds corresponding to the player. `checkCollision()` is the collision function. `runGame()` is the main game function. `endGame` checks if the game is over and checks for a highscore.
+
+* menu.h
+  Includes LCD related functions, mainly for the menu. 
+
+
 
