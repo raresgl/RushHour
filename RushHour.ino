@@ -5,11 +5,20 @@
 
 void setup()
 {
+  appInitSuccessfully = readIntFromEEPROM(eepromAppInitSuccessfullyAddress);
+  // Init only when asked
+  if (!appInitSuccessfully)
+  {
+    initEEPROM();
+  }
+  LCDContrast = readIntFromEEPROM(eepromContrastAddress);
+  screenLight = readIntFromEEPROM(eepromScreenBrightnessAddress);
+  matrixLight = readIntFromEEPROM(eepromMatrixBrightnessAddress);
+  chosenLevel = readIntFromEEPROM(eepromChosenLevelAddress);
+  readStringFromEEPROM(eepromPlayerNameStartAddress, &playerName);
+  
   hardware_setup();
   Serial.begin(9600);
-  highscoreMemoryInit();
-
-  
 }
 
 void loop()
@@ -29,9 +38,9 @@ void loop()
     if (gameStarted == true)
     {
       if (isGameOver == false)
-        RunGame();
+        runGame();
       else
-        EndMenu();
+        endMenu();
     }
     else
       showMenu();

@@ -3,44 +3,6 @@
 #define MENU_H
 #include "variables.h"
 
-int readStringFromEEPROM(int addrOffset, String *strToRead)
-{
-  int newStrLen = EEPROM.read(addrOffset);
-  char data[newStrLen + 1];
-  for (int i = 0; i < newStrLen; i++)
-  {
-    data[i] = EEPROM.read(addrOffset + 1 + i);
-  }
-  data[newStrLen] = '\0';
-  *strToRead = String(data);
-  return addrOffset + 1 + newStrLen;
-}
-
-int writeStringToEEPROM(int addrOffset, const String &strToWrite)
-{
-  byte len = strToWrite.length();
-  EEPROM.update(addrOffset, len);
-  for (int i = 0; i < len; i++)
-  {
-    EEPROM.update(addrOffset + 1 + i, strToWrite[i]);
-  }
-  return addrOffset + 1 + len;
-}
-
-void highscoreMemoryInit()
-{
-  String player1 = "RARES";
-  String player2 = "ANDREI";
-
-  byte addrOffsetPlayer1 = writeStringToEEPROM(currentEepromOffset, player1);
-  highScoreRecords++;
-  currentEepromOffset = addrOffsetPlayer1;
-
-  byte addrOffsetPlayer2 = writeStringToEEPROM(currentEepromOffset, player2);
-  highScoreRecords++;
-  currentEepromOffset = addrOffsetPlayer1;
-}
-
 void printStartUp()
 {
   lcd.setCursor(4, 0);
@@ -49,13 +11,12 @@ void printStartUp()
   lcd.print("by Rares Mateiu");
 }
 
-void print_line(int line, String text)
+void printLine(int line, String text)
 {
   printLineTimer = millis();
   lcd.setCursor(0, line);
   lcd.print(text);
   lcd.print("               ");
-  // lcd.setCursor(0, line);
 }
 
 void displaySettings()
@@ -70,48 +31,53 @@ void displaySettings()
     {
       if (submenuScrollPosition > 0)
       {
+        tone(buzzerPin, 100, 200);
         submenuScrollPosition--;
       }
     }
     if (joystick == down)
     {
-      if (submenuScrollPosition < 6)
+      if (submenuScrollPosition < 7)
       {
+        tone(buzzerPin, 300, 200);
         submenuScrollPosition++;
       }
     }
-    print_line(0, "Settings Menu");
+    printLine(0, "Settings Menu");
     switch (submenuScrollPosition)
     {
     case 0:
-      print_line(1, "Show name");
+      printLine(1, "Show name");
       break;
     case 1:
-      print_line(1, "New name");
+      printLine(1, "New name");
       break;
     case 2:
-      print_line(1, "Set difficulty");
+      printLine(1, "Set difficulty");
       break;
     case 3:
     {
-      print_line(1, "Contrast");
+      printLine(1, "Contrast");
       break;
     }
     case 4:
     {
-      print_line(1, "Screen Light");
+      printLine(1, "Screen Light");
       break;
     }
     case 5:
     {
-      print_line(1, "Matrix Light");
+      printLine(1, "Matrix Light");
       break;
     }
     case 6:
-      print_line(1, "Quit submenu");
+      printLine(1, "Reset memory");
+      break;
+    case 7:
+      printLine(1, "Quit submenu");
       break;
     }
-    
+
     if (joystick == enter)
     {
       lcd.clear();
@@ -121,291 +87,348 @@ void displaySettings()
   if (inSecondSubmenu)
   {
 
-    String nume;
-
     switch (submenuScrollPosition)
     {
-      case 0:
-      { // show name
-        print_line(0, "Your name");
-        currentEepromOffset = 0; // ?
-        int newOffset;
-        newOffset = readStringFromEEPROM(currentEepromOffset, &nume);
-        currentEepromOffset = newOffset;
-        print_line(1, nume);
+    case 0:
+    { // show name
+      printLine(0, "Your name");
+      readStringFromEEPROM(eepromPlayerNameStartAddress, &playerName);
+      printLine(1, playerName);
 
-        joystick = readJoystick();
-        Serial.println(joystick);
-        if (joystick == enter)
-        {
-          lastJoyRead = joystick;
-          inSecondSubmenu = !inSecondSubmenu; // !inSecondSubmenu;
-          lcd.clear();
-        }
-        break;
-      }
-      case 1: // enter name
+      joystick = readJoystick();
+      Serial.println(joystick);
+      if (joystick == enter)
       {
-        print_line(0, "Enter your name");
-        print_line(1, "In serial");
+        lastJoyRead = joystick;
+        inSecondSubmenu = !inSecondSubmenu; // !inSecondSubmenu;
+        lcd.clear();
+      }
+      break;
+    }
+    case 1: // enter name
+    {
+      printLine(0, "Enter your name");
+      printLine(1, "In serial");
 
-        joystick = readJoystick();
+      joystick = readJoystick();
+      if (joystick == enter)
+      {
+        while (Serial.available() > 0)
+        {
+          incomingByte = (char)Serial.read();
+          inputString += incomingByte;
+          Serial.print("I received: ");
+          Serial.println(incomingByte);
+
+          if (incomingByte == '\n')
+          {
+            stringComplete = true;
+            Serial.println(inputString);
+            writeStringToEEPROM(eepromPlayerNameStartAddress, inputString);
+            break;
+          }
+        }
+        inSecondSubmenu = !inSecondSubmenu;
+        lcd.clear();
+        submenuScrollPosition = 1;
+      }
+      break;
+    }
+    case 2: // difficulty
+    {
+      printLine(1, "              ");
+      printLine(0, "Level" + String(chosenLevel));
+      joystick = readJoystick();
+      if (joystick != lastJoyRead)
+      {
+        lastJoyRead = joystick;
+        if (joystick == left)
+        {
+          if (chosenLevel > 1)
+          {
+            chosenLevel--;
+          }
+        }
+        if (joystick == right)
+        {
+          if (chosenLevel < 7)
+          {
+            chosenLevel++;
+          }
+        }
         if (joystick == enter)
         {
-          while (Serial.available() > 0)
-          {
-            incomingByte = (char)Serial.read();
-            inputString += incomingByte;
-            Serial.print("I received: ");
-            Serial.println(incomingByte);
-
-            if (incomingByte == '\n')
-            {
-              stringComplete = true;
-              Serial.println(inputString);
-              int newOffset;
-              newOffset = writeStringToEEPROM(currentEepromOffset, inputString);
-              currentEepromOffset = newOffset;
-              break;
-            }
-          }
           inSecondSubmenu = !inSecondSubmenu;
+          submenuScrollPosition = 2;
+          writeIntIntoEEPROM(eepromChosenLevelAddress, chosenLevel);
           lcd.clear();
-          submenuScrollPosition = 1;
         }
-        break;
       }
-      case 2: // difficulty
+      break;
+    }
+    case 3: // contrast settings
+    {
+      int xValue = analogRead(xPin);
+
+      if (xValue > maxThreshold)
       {
-        print_line(1, "              ");
-        print_line(0, "Level" + String(chosenLevel));
-        joystick = readJoystick();
-        if (joystick != lastJoyRead)
+        if (LCDContrast < 255)
         {
-          lastJoyRead = joystick;
-          if (joystick == left)
-          {
-            if (chosenLevel > 1)
-            {
-              chosenLevel--;
-            }
-          }
-          if (joystick == right)
-          {
-            if (chosenLevel < 7)
-            {
-              chosenLevel++;
-            }
-          }
-          if (joystick == enter)
-          {
-            inSecondSubmenu = !inSecondSubmenu;
-            submenuScrollPosition = 2;
-            lcd.clear();
-          }
-        }
-        break;
-      }
-      case 3: // contrast settings
-      {
-        int xValue = analogRead(xPin);
-        
-        
-        if (xValue > maxThreshold)
-        {
-          if (LCDContrast < 255)
-          {
-            
+
           LCDContrast++;
           delay(15);
-          }
         }
-      
-        if (xValue < minThreshold)
-        {
-          if (LCDContrast > 0)
-          {
-            LCDContrast--;
-            delay(15);
-          }
-        }
-
-        analogWrite(contrastPin, LCDContrast);
-        lcd.setCursor(0, 0);
-        lcd.print("Contrast: ");
-        lcd.print(LCDContrast);
-        lcd.print("      ");
-
-        joystick = readJoystick();
-        if (joystick == enter)
-        {
-          inSecondSubmenu = !inSecondSubmenu;
-          submenuScrollPosition = 3;
-          lcd.clear();
-        }
-        
-        break;
       }
-      case 4: // screen light
+
+      if (xValue < minThreshold)
       {
-        int xValue = analogRead(xPin);
-        
-        
-        if (xValue > maxThreshold)
+        if (LCDContrast > 0)
         {
-          if (screenLight < 1400)
-          {
-            
+          LCDContrast--;
+          delay(15);
+        }
+      }
+      analogWrite(contrastPin, LCDContrast);
+      lcd.setCursor(0, 0);
+      lcd.print("Contrast: ");
+      lcd.print(LCDContrast);
+      lcd.print("      ");
+
+      joystick = readJoystick();
+      if (joystick == enter)
+      {
+        inSecondSubmenu = !inSecondSubmenu;
+        submenuScrollPosition = 3;
+        writeIntIntoEEPROM(eepromContrastAddress, LCDContrast);
+        lcd.clear();
+      }
+
+      break;
+    }
+    case 4: // screen light
+    {
+      int xValue = analogRead(xPin);
+
+      if (xValue > maxThreshold)
+      {
+        if (screenLight < 1400)
+        {
+
           screenLight++;
           delay(15);
-          }
         }
-      
-        if (xValue < minThreshold)
-        {
-          if (screenLight > 700)
-          {
-            screenLight--;
-            delay(15);
-          }
-        }
-
-
-        // TO INSTALL hardware
-          /* analogWrite(screenLightPin, screenLight); */
-        lcd.setCursor(0, 0);
-        lcd.print("BRIGHTNESS: ");
-        lcd.print(screenLight);
-        lcd.print("      ");
-        lcd.setCursor(0,1);
-        lcd.print("Screen");
-
-        joystick = readJoystick();
-        if (joystick == enter)
-        {
-          inSecondSubmenu = !inSecondSubmenu;
-          submenuScrollPosition = 4;
-          lcd.clear();
-        }
-        
-        break;
       }
-      case 5: // matrix light
-      {
-       
-        for(int i=0;i<matrixSize;i++) {
-          for(int j=0;j<matrixSize;j++) {
-            lc.setLed(0,i,j,true);
-          }
-        }
 
-        int xValue = analogRead(xPin); 
-        if (xValue > maxThreshold)
+      if (xValue < minThreshold)
+      {
+        if (screenLight > 700)
         {
-          if (matrixLight < 15)
-          {
+          screenLight--;
+          delay(15);
+        }
+      }
+
+      analogWrite(screenLightPin, screenLight);
+      lcd.setCursor(0, 0);
+      lcd.print("BRIGHTNESS: ");
+      lcd.print(screenLight);
+      lcd.print("      ");
+      lcd.setCursor(0, 1);
+      lcd.print("Screen");
+
+      joystick = readJoystick();
+      if (joystick == enter)
+      {
+        inSecondSubmenu = !inSecondSubmenu;
+        submenuScrollPosition = 4;
+
+        writeIntIntoEEPROM(eepromScreenBrightnessAddress, screenLight);
+        lcd.clear();
+      }
+
+      break;
+    }
+    case 5: // matrix light
+    {
+
+      for (int i = 0; i < matrixSize; i++)
+      {
+        for (int j = 0; j < matrixSize; j++)
+        {
+          lc.setLed(0, i, j, true);
+        }
+      }
+
+      int xValue = analogRead(xPin);
+      if (xValue > maxThreshold)
+      {
+        if (matrixLight < 15)
+        {
           matrixLight++;
           delay(100);
-          }
         }
-      
-        if (xValue < minThreshold)
+      }
+
+      if (xValue < minThreshold)
+      {
+        if (matrixLight > 0)
         {
-          if (matrixLight > 0)
-          {
-            matrixLight--;
-            delay(100);
-          }
+          matrixLight--;
+          delay(100);
         }
-        lc.setIntensity(0, matrixLight);
+      }
+      lc.setIntensity(0, matrixLight);
 
-        lcd.setCursor(0, 0);
-        lcd.print("BRIGHTNESS: ");
-        lcd.print(matrixLight);
-        lcd.print("      ");
-        lcd.setCursor(0,1);
-        lcd.print("Matrix");
+      lcd.setCursor(0, 0);
+      lcd.print("BRIGHTNESS: ");
+      lcd.print(matrixLight);
+      lcd.print("      ");
+      lcd.setCursor(0, 1);
+      lcd.print("Matrix");
 
-        joystick = readJoystick();
-        if (joystick == enter)
+      joystick = readJoystick();
+      if (joystick == enter)
+      {
+        inSecondSubmenu = !inSecondSubmenu;
+        submenuScrollPosition = 5;
+        lcd.clear();
+        writeIntIntoEEPROM(eepromMatrixBrightnessAddress, matrixLight);
+        lc.clearDisplay(0); // clear screen
+      }
+
+      break;
+    }
+    case 6: // reset memory
+    {
+      printLine(0, "RESETTING ALL");
+      lcd.setCursor(0, 1);
+      lcd.write("Loading.");
+      for (int i = 1; i <= 6; i++)
+      {
+        for (int j = (eepromSize / 6) * (i - 1); j <= (eepromSize / 6) * i; j++)
         {
-          inSecondSubmenu = !inSecondSubmenu;
-          submenuScrollPosition = 5;
-          lcd.clear();
-          lc.clearDisplay(0);    // clear screen
+          EEPROM.write(j, 0);
         }
-        
-        break;
+        lcd.write(".");
+        delay(100);
       }
-      case 6: // exit
-      {
-        inSubmenu = false;
-        currentMenuItem = 0;
-        submenuScrollPosition = 0;
-        break;
-      }
+      appInitSuccessfully = 0;
+      writeIntIntoEEPROM(eepromAppInitSuccessfullyAddress, appInitSuccessfully);
+      resetFunc();
     }
-  }
-}
-
-void updateHighscoreArrays(int eepromStartingOffset)
-{
-  int lastOffset = eepromStartingOffset;
-  String newStr;
-  for (int i = 0; i < highScoreRecords; i++)
-  {
-    int newOffset;
-    newOffset = readStringFromEEPROM(lastOffset, &newStr);
-    lastOffset = newOffset;
-    highScorePlayersArray[i] = newStr;
-    highScoresArray[i] = 500;
-  }
-}
-
-void displayHighscore()
-{
-
-  int highscoreEepromOffset = 0;
-  updateHighscoreArrays(highscoreEepromOffset);
-  int joystick = readJoystick();
-  if (joystick != lastJoyRead)
-  {
-    lastJoyRead = joystick;
-    if (joystick == up)
+    case 7: // exit
     {
-      if (submenuScrollPosition > 0)
-      {
-        submenuScrollPosition--;
-      }
-      else
-      {
-        submenuScrollPosition = highScoreRecords - 1;
-      }
-    }
-    if (joystick == down)
-    {
-      if (submenuScrollPosition < highScoreRecords)
-      {
-        submenuScrollPosition++;
-      }
-      else
-      {
-        submenuScrollPosition = 0;
-      }
-    }
-
-    print_line(0, "Highscore");
-    String nume = highScorePlayersArray[submenuScrollPosition];
-    int highscore = highScoresArray[submenuScrollPosition];
-    print_line(1, nume + ":" + String(highscore));
-
-    if (joystick == enter)
-    {
-      inSubmenu = !inSubmenu;
-      currentMenuItem = 1;
+      inSubmenu = false;
+      currentMenuItem = 0;
       submenuScrollPosition = 0;
+      break;
+    }
     }
   }
+}
+
+void displayHighScore()
+{
+  highScoreRecords = readIntFromEEPROM(eepromHighScoreRecordsAddress);
+  if (highScoreRecords > 3 || highScoreRecords < 0)
+  {
+    highScoreRecords = 0;
+  }
+
+  if (highScoreRecords == 0)
+  {
+    printLine(0, "NO HIGHSCORES");
+    lcd.setCursor(0, 1);
+    lcd.write("Returning.");
+    for (int i = 0; i < 6; i++)
+    {
+      lcd.write(".");
+      delay(500);
+    }
+    inSubmenu = !inSubmenu;
+    currentMenuItem = 1;
+    submenuScrollPosition = 0;
+    currentHighScorePosition = 0;
+  }
+  else
+  {
+    int joystick = readJoystick();
+    if (joystick != lastJoyRead)
+    {
+      lastJoyRead = joystick;
+
+      if (joystick == up)
+      {
+        if (currentHighScorePosition > 0)
+        {
+          currentHighScorePosition--;
+        }
+        else
+        {
+          currentHighScorePosition = highScoreRecords - 1;
+        }
+      }
+      if (joystick == down)
+      {
+        if (currentHighScorePosition < highScoreRecords - 1)
+        {
+          currentHighScorePosition++;
+        }
+        else
+        {
+          currentHighScorePosition = 0;
+        }
+      }
+      else if (joystick == enter)
+      {
+        inSubmenu = !inSubmenu;
+        currentMenuItem = 1;
+        submenuScrollPosition = 0;
+        currentHighScorePosition = 0;
+      }
+    }
+  }
+  String name1, name2, currentName;
+  int currentScore;
+  currentScore = readIntFromEEPROM(eepromHighScoreStartAddress + currentHighScorePosition * sizeof(int));
+  byte length1, length2;
+
+  if (currentHighScorePosition == 0)
+  {
+    readStringFromEEPROM(eepromPlayerNameStartAddress, &currentName);
+  }
+  else if (currentHighScorePosition == 1)
+  {
+    length1 = readStringFromEEPROM(eepromPlayerNameStartAddress, &name1);
+    readStringFromEEPROM(eepromPlayerNameStartAddress + length1, &currentName);
+  }
+  else if (currentHighScorePosition == 2)
+  {
+    length1 = readStringFromEEPROM(eepromPlayerNameStartAddress, &name1);
+    length2 = readStringFromEEPROM(eepromPlayerNameStartAddress + length1, &name2);
+    readStringFromEEPROM(eepromPlayerNameStartAddress + length1 + length2, &currentName);
+  }
+
+  lcd.setCursor(0, 0);
+  lcd.print("High scores ");
+  lcd.setCursor(13, 0);
+  if (currentHighScorePosition == 0)
+  {
+    lcd.print("1st");
+  }
+  else if (currentHighScorePosition == 1)
+  {
+    lcd.print("2nd");
+  }
+  else
+  {
+    lcd.print("3rd");
+  }
+  lcd.setCursor(0, 1);
+  lcd.print(currentName);
+  lcd.print(" Score");
+  lcd.print(currentScore);
+  lcd.print("          ");
 }
 
 void displayAbout()
@@ -439,16 +462,16 @@ void displayAbout()
     switch (submenuScrollPosition)
     {
     case 0:
-      print_line(0, "Game");
-      print_line(1, "Rush Hour");
+      printLine(0, "Game");
+      printLine(1, "Rush Hour");
       break;
     case 1:
-      print_line(0, "Created By");
-      print_line(1, "Mateiu Rares");
+      printLine(0, "Created By");
+      printLine(1, "Mateiu Rares");
       break;
     case 2:
-      print_line(0, "Link");
-      print_line(1, "zzz");
+      printLine(0, "Link");
+      printLine(1, "zzz");
       break;
     }
     if (joystick == enter)
@@ -470,8 +493,8 @@ void resetGame()
   botSpawnRate = 12.5 * carSpeed;
   isGameOver = false;
   didCheckLevel = false;
-  ClearLastPlayerPosition();
-  ClearLastBotPosition();
+  clearLastPlayerPosition();
+  clearLastBotPosition();
   xCar = 8;
   yCar = 2;
   xPlayer = 2;
@@ -487,20 +510,20 @@ void showMenu()
 
   if (!inSubmenu)
   {
-    print_line(0, "Main Menu");
+    printLine(0, "Main Menu");
     switch (currentMenuItem)
     {
     case 0:
-      print_line(1, "Start Game");
+      printLine(1, "Start Game");
       break;
     case 1:
-      print_line(1, "High Score");
+      printLine(1, "High Score");
       break;
     case 2:
-      print_line(1, "Settings");
+      printLine(1, "Settings");
       break;
     case 3:
-      print_line(1, "About");
+      printLine(1, "About");
       break;
     }
     int joystick = readJoystick();
@@ -510,6 +533,8 @@ void showMenu()
       lastJoyRead = joystick;
       if (joystick == right)
       {
+
+        tone(buzzerPin, 300, 200);
         if (currentMenuItem < 3)
         {
           currentMenuItem++;
@@ -521,6 +546,8 @@ void showMenu()
       }
       if (joystick == left)
       {
+
+        tone(buzzerPin, 100, 200);
         if (currentMenuItem > 0)
         {
           currentMenuItem--;
@@ -545,7 +572,7 @@ void showMenu()
       gameStarted = true;
       break;
     case 1:
-      displayHighscore();
+      displayHighScore();
       break;
     case 2:
       displaySettings();
@@ -585,7 +612,7 @@ void lcdGame()
   lcd.print(score);
 }
 
-void EndMenu()
+void endMenu()
 {
   lcd.setCursor(0, 0);
   lcd.print("SCORE:");
@@ -643,8 +670,8 @@ void EndMenu()
       botSpawnRate = 12.5 * carSpeed;
       gameStarted = false;
       isGameOver = false;
-      ClearLastPlayerPosition();
-      ClearLastBotPosition();
+      clearLastPlayerPosition();
+      clearLastBotPosition();
       xCar = 8;
       yCar = 2;
       xPlayer = 2;
