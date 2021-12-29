@@ -42,6 +42,16 @@ The Settings Menu, which lets you costumise your game & UI however you want and 
 * Button
 
 # Setup
+* Game 
+![WhatsApp Image 2021-12-29 at 16 33 45](https://user-images.githubusercontent.com/40142811/147676199-ac88ca83-4c3f-429b-a171-29ec0c35a8e8.jpeg)
+* Gameover interface
+![WhatsApp Image 2021-12-29 at 16 33 48](https://user-images.githubusercontent.com/40142811/147676251-987914f9-78fc-44cd-94ba-659c8bf560c5.jpeg)
+* Normal score
+![WhatsApp Image 2021-12-29 at 16 33 48 (1)](https://user-images.githubusercontent.com/40142811/147676279-ac7e3da4-2215-43cc-a724-5048b2923e1e.jpeg)
+* Highscore
+![WhatsApp Image 2021-12-29 at 16 33 50](https://user-images.githubusercontent.com/40142811/147676333-21227395-c9cb-47c2-a749-3d30a92a19e9.jpeg)
+* New name serial
+<img width="135" alt="Captură de ecran din 2021-12-29 la 17 08 45" src="https://user-images.githubusercontent.com/40142811/147676378-efe49aef-a98a-4f74-b3d8-821b333f4841.png">
 
 # Demo 
 
