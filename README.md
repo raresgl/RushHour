@@ -2,7 +2,7 @@
 
 ### Hello, my name is Rares and this is a game made by me during the Introduction to Robotics course at University of Bucharest. This repository will include both the coding & setup part as well as the logic behind the game and each steps that were made in the process of creating this project.
 
-## <a href="https://github.com/raresgl/Introduction-to-Robotics-2021---2022-" target="_blank">Related stuff</a>
+# <a href="https://github.com/raresgl/Introduction-to-Robotics-2021---2022-" target="_blank">Related stuff</a>
 
 # Game description
 
@@ -53,7 +53,7 @@ The Settings Menu, which lets you costumise your game & UI however you want and 
 * New name serial
 <img width="135" alt="Captură de ecran din 2021-12-29 la 17 08 45" src="https://user-images.githubusercontent.com/40142811/147676378-efe49aef-a98a-4f74-b3d8-821b333f4841.png">
 
-<a href="https://youtu.be/V2j5a0CKIwU" target="_blank">Demo</a>
+# <a href="https://youtu.be/V2j5a0CKIwU" target="_blank">Demo</a>
 
 # Master Comment about Core Architecture 
 
@@ -73,5 +73,9 @@ I am going through each file of the project:
 * menu.h
   Includes LCD related functions, mainly for the menu. 
 
+### Aditional notes on code architecture
+
+I will attach some personal stuff that i wrote during the progress on the game, not very relevant but it adds a personal note to the whole project.
+[Note 20 Dec 2021.pdf](https://github.com/raresgl/RushHour/files/7789586/Note.20.Dec.2021.pdf)
 
 
