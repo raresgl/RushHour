@@ -53,7 +53,7 @@ The Settings Menu, which lets you costumise your game & UI however you want and 
 * New name serial
 <img width="135" alt="Captură de ecran din 2021-12-29 la 17 08 45" src="https://user-images.githubusercontent.com/40142811/147676378-efe49aef-a98a-4f74-b3d8-821b333f4841.png">
 
-# Demo 
+<a href="https://youtu.be/V2j5a0CKIwU" target="_blank">Demo</a>
 
 # Master Comment about Core Architecture 
 
