@@ -73,9 +73,9 @@ I am going through each file of the project:
 * menu.h
   Includes LCD related functions, mainly for the menu. 
 
-### Aditional notes on code architecture
+## Aditional notes on code architecture
 
 I will attach some personal stuff that i wrote during the progress on the game, not very relevant but it adds a personal note to the whole project.
-[Note 20 Dec 2021.pdf](https://github.com/raresgl/RushHour/files/7789586/Note.20.Dec.2021.pdf)
 
+### <a href="https://github.com/raresgl/RushHour/files/7789586/Note.20.Dec.2021.pdf" target="_blank">Personal Notes</a>
 
